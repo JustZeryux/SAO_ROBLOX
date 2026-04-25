@@ -1,0 +1,27 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local saoHPBarAccessory = ReplicatedStorage:WaitForChild("SAO_HealthBarAccessory")
+local updateHPRemote = ReplicatedStorage:WaitForChild("UpdateHP")
+local attachHPRemote = ReplicatedStorage:WaitForChild("AttachHPBar")
+
+local function SetupPlayer(player)
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	local hpBarClon = saoHPBarAccessory:Clone()
+	humanoid:AddAccessory(hpBarClon)
+
+	-- SOLO pasamos al jugador. El cliente buscará el modelo cuando cargue.
+	attachHPRemote:FireAllClients(player)
+
+	humanoid.HealthChanged:Connect(function(newHealth)
+		updateHPRemote:FireAllClients(player, newHealth, humanoid.MaxHealth)
+	end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function()
+		SetupPlayer(player)
+	end)
+end)
